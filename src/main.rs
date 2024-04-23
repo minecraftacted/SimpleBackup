@@ -1,7 +1,6 @@
 use chrono::DateTime;
 use config::Config;
 use std::fs;
-use std::fs::Metadata;
 use std::path::Path;
 use std::path::PathBuf;
 use std::env;
@@ -34,13 +33,13 @@ fn main() {
             Err(e) => println!("{:?}", e),
         }
     }
-    delete_old_backups(&loaded_config);
+    let _ = delete_old_backups(&loaded_config);
 }
 fn copy(src: &Path, dest: &Path) -> Result<(), std::io::Error> {
     if !dest.exists() {
         fs::create_dir_all(dest)?;
     }
-    if(!src.exists()) {
+    if !src.exists() {
         println!("{} does not exist", src.display());
         return Err(std::io::Error::from(std::io::ErrorKind::NotFound));
     }
@@ -72,7 +71,7 @@ fn delete_old_backups(loaded_config: &LoadedConfig) -> Result<(), std::io::Error
         let storage_period_days = Duration::days(loaded_config.storage_period_days);
         let now:DateTime<Local> = Local::now();
         if now-storage_period_days > created_at{
-            fs::remove_dir_all(backup.path());
+            let _ = fs::remove_dir_all(backup.path());
         }
     }
     Ok(())
