@@ -2,9 +2,9 @@
 # NOTE: Relative paths are interpreted from the current directory when the program is run.
 #       We recommend specifying an absolute path.
 directories_to_backup:
-- ./something_to_backup/
-- ./what_to_backup/
-- ./some_directory/
+#- ./something_to_backup/
+#- ./what_to_backup/
+#- ./some_directory/
 
 #Backups will be saved to the directory set here.
 #If the path don't exist, the program will create a new directory.
