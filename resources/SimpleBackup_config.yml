@@ -1,0 +1,17 @@
+#These directories or files will be copied to "directory_to_save_directory" path as backup data.
+# NOTE: Relative paths are interpreted from the current directory when the program is run.
+#       We recommend specifying an absolute path.
+directories_to_backup:
+- ./something_to_backup/
+- ./what_to_backup/
+- ./some_directory/
+
+#Backups will be saved to the directory set here.
+#If the path don't exist, the program will create a new directory.
+# NOTE: Relative paths are interpreted from the current directory when the program is run.
+#       We recommend specifying an absolute path.
+directory_to_save_backup: ./backups/
+
+#When the program is run,
+#folders older than the number set here will be deleted.
+storage_period_days: 7

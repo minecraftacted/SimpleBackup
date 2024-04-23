@@ -1,0 +1,15 @@
+[package]
+name = "SimpleBackup"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+config = {version = "0.14.0",features=["yaml"]}
+chrono = "0.4.38"
+uuid = {version = "1.8.0",features = ["serde","v4"]}
+[[bin]]
+name = "TransferBackup"
+path = "src/transfer_backup.rs"
