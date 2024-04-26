@@ -1,3 +1,5 @@
 fn main() {
-    std::fs::copy("./resources/config.yml", "./target/debug/config.yml").unwrap();
+    let profile = std::env::var("PROFILE").unwrap();
+    let dest = format!("./target/{}/config.yml", profile);
+    std::fs::copy("./resources/config.yml", dest).unwrap();
 }
