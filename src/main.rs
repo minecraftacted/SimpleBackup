@@ -85,7 +85,7 @@ struct LoadedConfig {
 impl LoadedConfig {
     pub fn from_config_file() -> LoadedConfig {
         let config_file:Config = Config::builder()
-            .add_source(config::File::with_name("SimpleBackup_config"))
+            .add_source(config::File::with_name("config"))
             .build()
             .expect("Failed to load config file");
         LoadedConfig {
