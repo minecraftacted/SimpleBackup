@@ -23,7 +23,7 @@ fn main() {
                 dest = backup_version_path.to_path_buf().join(PathBuf::from(directory_to_backup).file_name().unwrap());
             }
             match copy(Path::new(directory_to_backup), dest.as_path()) {
-                Ok(()) => println!("{} was successfully backed up", directory_to_backup),
+                Ok(()) => println!("{} was successfully backed up in {}", directory_to_backup,dest.to_str().unwrap()),
                 Err(e) => println!("{:?}", e),
             }
         }
