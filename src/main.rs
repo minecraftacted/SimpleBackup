@@ -10,24 +10,25 @@ use uuid::Uuid;
 fn main() {
     let loaded_config = find_config_file();
 
-    create_directory_to_save_backup_if_not_exists(&loaded_config);
-
-    let day_and_time = loaded_config.directory_to_save_backup.to_string() + &Local::now().format("%Y-%m-%d-%H-%M-").to_string();
-    let backup_version_name = day_and_time + &Uuid::new_v4().to_string();
-    let day_file_path = Path::new(&backup_version_name);
-    fs::create_dir(day_file_path).unwrap();
-
-    for directory_to_backup in &loaded_config.directories_to_backup {
-        let mut dest = day_file_path.to_path_buf();
-        if PathBuf::from(directory_to_backup).is_dir()  {
-            dest = day_file_path.to_path_buf().join(PathBuf::from(directory_to_backup).file_name().unwrap());
+    create_directories_to_save_backup_if_not_exists(&loaded_config);
+    for directory_to_save_backup in &loaded_config.directories_to_save_backup {
+        let day_and_time = directory_to_save_backup.to_string() + &Local::now().format("%Y-%m-%d-%H-%M-").to_string();
+        let backup_version_name = day_and_time + &Uuid::new_v4().to_string();
+        let backup_version_path = Path::new(&backup_version_name);
+        fs::create_dir(backup_version_path).unwrap();
+    
+        for directory_to_backup in &loaded_config.directories_to_backup {
+            let mut dest = backup_version_path.to_path_buf();
+            if PathBuf::from(directory_to_backup).is_dir()  {
+                dest = backup_version_path.to_path_buf().join(PathBuf::from(directory_to_backup).file_name().unwrap());
+            }
+            match copy(Path::new(directory_to_backup), dest.as_path()) {
+                Ok(()) => println!("{} was successfully backed up", directory_to_backup),
+                Err(e) => println!("{:?}", e),
+            }
         }
-        match copy(Path::new(directory_to_backup), dest.as_path()) {
-            Ok(()) => println!("{} was successfully backed up", directory_to_backup),
-            Err(e) => println!("{:?}", e),
-        }
+        let _ = delete_old_backups(&loaded_config);
     }
-    let _ = delete_old_backups(&loaded_config);
 }
 fn copy(src: &Path, dest: &Path) -> Result<(), std::io::Error> {
     if !dest.exists() {
@@ -59,13 +60,15 @@ fn copy(src: &Path, dest: &Path) -> Result<(), std::io::Error> {
     Ok(())
 }
 fn delete_old_backups(loaded_config: &LoadedConfig) -> Result<(), std::io::Error> {
-    for backup in fs::read_dir(Path::new(&loaded_config.directory_to_save_backup))? {
-        let backup = backup.unwrap();
-        let created_at:DateTime<Local> = DateTime::from(backup.metadata().unwrap().created().unwrap());
-        let storage_period_days = Duration::days(loaded_config.storage_period_days);
-        let now:DateTime<Local> = Local::now();
-        if now-storage_period_days > created_at{
-            let _ = fs::remove_dir_all(backup.path());
+    for directory in &loaded_config.directories_to_save_backup {
+        for backup in fs::read_dir(Path::new(directory))? {
+            let backup = backup.unwrap();
+            let created_at:DateTime<Local> = DateTime::from(backup.metadata().unwrap().created().unwrap());
+            let storage_period_days = Duration::days(loaded_config.storage_period_days);
+            let now:DateTime<Local> = Local::now();
+            if now-storage_period_days > created_at{
+                let _ = fs::remove_dir_all(backup.path());
+            }
         }
     }
     Ok(())
@@ -77,15 +80,17 @@ fn find_config_file() ->LoadedConfig{
     let _ = env::set_current_dir(temp_current_dir);
     loaded_config
 }
-fn create_directory_to_save_backup_if_not_exists(loaded_config:&LoadedConfig) {
-    if !(Path::new(&loaded_config.directory_to_save_backup).try_exists().expect("Failed to check is exists directory_to_save_backup")) {
-        let _ = fs::create_dir(&loaded_config.directory_to_save_backup);
+fn create_directories_to_save_backup_if_not_exists(loaded_config:&LoadedConfig) {
+    for directory in &loaded_config.directories_to_save_backup {
+        if !(Path::new(directory).try_exists().expect("Failed to check is exists directory_to_save_backup")) {
+            let _ = fs::create_dir(directory);
+        }
     }
 }
 struct LoadedConfig {
     config_file:Config,
     pub storage_period_days:i64,
-    pub directory_to_save_backup:String,
+    pub directories_to_save_backup:Vec<String>,
     pub directories_to_backup: Vec<String>,
 }
 impl LoadedConfig {
@@ -97,7 +102,12 @@ impl LoadedConfig {
         LoadedConfig {
             config_file: config_file.clone(),
             storage_period_days: config_file.get_int("storage_period_days").expect("Failed to get storage_period_days from config file"),
-            directory_to_save_backup: config_file.get_string("directory_to_save_backup").expect("Failed to get storage_period_days from config file"),
+            directories_to_save_backup: config_file
+                .get_array("directories_to_save_backup")
+                .expect("Failed to get storage_period_days from config file")
+                .iter()
+                .map(|element| element.kind.to_string())
+                .collect(),
             directories_to_backup: config_file
                 .get_array("directories_to_backup")
                 .expect("Failed to get directories_to_backup from config file")
