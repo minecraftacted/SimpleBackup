@@ -8,15 +8,9 @@ use chrono::Local;
 use chrono::Duration;
 use uuid::Uuid;
 fn main() {
-    //set current directory to where program is
-    let temp_current_dir = env::current_dir().unwrap();
-    let _ = env::set_current_dir(env::current_exe().unwrap().parent().unwrap());
-    let loaded_config = LoadedConfig::from_config_file();
-    let _ = env::set_current_dir(temp_current_dir);
+    let loaded_config = find_config_file();
 
-    if !(Path::new(&loaded_config.directory_to_save_backup).try_exists().expect("Failed to check is exists directory_to_save_backup")) {
-        let _ = fs::create_dir(&loaded_config.directory_to_save_backup);
-    }
+    create_directory_to_save_backup_if_not_exists(&loaded_config);
 
     let day_and_time = loaded_config.directory_to_save_backup.to_string() + &Local::now().format("%Y-%m-%d-%H-%M-").to_string();
     let backup_version_name = day_and_time + &Uuid::new_v4().to_string();
@@ -75,6 +69,18 @@ fn delete_old_backups(loaded_config: &LoadedConfig) -> Result<(), std::io::Error
         }
     }
     Ok(())
+}
+fn find_config_file() ->LoadedConfig{
+    let temp_current_dir = env::current_dir().unwrap();
+    let _ = env::set_current_dir(env::current_exe().unwrap().parent().unwrap());
+    let loaded_config = LoadedConfig::from_config_file();
+    let _ = env::set_current_dir(temp_current_dir);
+    loaded_config
+}
+fn create_directory_to_save_backup_if_not_exists(loaded_config:&LoadedConfig) {
+    if !(Path::new(&loaded_config.directory_to_save_backup).try_exists().expect("Failed to check is exists directory_to_save_backup")) {
+        let _ = fs::create_dir(&loaded_config.directory_to_save_backup);
+    }
 }
 struct LoadedConfig {
     config_file:Config,
