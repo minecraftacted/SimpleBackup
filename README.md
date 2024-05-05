@@ -23,11 +23,13 @@ directories_to_backup:
 #- ./what_to_backup/
 #- ./some_directory/
 
-#Backups will be saved to the directory set here.
-#If the path don't exist, the program will create a new directory.
+#Backups will be saved to the directories set here.
+#If paths doesn't exist, the program will create new directories.
 # NOTE: Relative paths are interpreted from the current directory when the program is run.
 #       We recommend specifying an absolute path.
-directory_to_save_backup: ./backups/
+directories_to_save_backup: 
+#- ./backups/
+#- ./backups2/
 
 #When the program is run,
 #folders older than the number set here will be deleted.
@@ -44,9 +46,9 @@ The program will back up the files or directories specified here.
 
 The path can be specified as a relative path. In that case, relative paths are interpreted relative to the current directory when running the program.
 
-**directory_to_save_backup** is destination of backups.
+**directories_to_save_backup** is destination of backups.
 
-Inside this directory, a directory named after the date will be created, and the directories_to_backup directories will be backed up in that directory.
+Inside these directories, a directory named after the date will be created, and the directories_to_backup directories will be backed up in that directory.
 
 It can be specified with a relative path. Relative paths are handled in the same way as before.
 
